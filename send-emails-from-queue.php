@@ -10,7 +10,6 @@
  */
 
 set_time_limit(0);
-$sleep = 1;
 
 require '_config.php';
 
@@ -20,17 +19,14 @@ while (true) {
     $task = mysqli_fetch_assoc($result);
 
     if ($task) {
-        var_dump($task);
         sendEmail($task['from'], $task['to'], $task['hash'], $task['subject'], $task['body']);
 
         $sql = "delete from `queue_emails` where `id` = {$task['id']}";
         $result = mysqli_query($mysqli, $sql);
         if (!mysqli_query($mysqli, $sql)) {
-            addLog("Сообщение ошибки: %s\n" . mysqli_error($mysqli));
+            addLog("Сообщение ошибки: \n" . mysqli_error($mysqli));
         }
     }
-
-    sleep($sleep);
 }
 
 mysqli_close($mysqli);

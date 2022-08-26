@@ -9,30 +9,35 @@
 
 require '_config.php';
 
-// grab user's with confirmed or checked and valid emails whose subscription expires in 3 days
-$from = time();
-$to = $from + 60 * 60 * 24;
-$result = getUsersForSending($mysqli, $to, $from);
+$daysBeforeNotification = 3;
 
+// grab user's with confirmed or checked and valid emails whose subscription expires in 3 days
+$result = getUsersForSending($mysqli, $daysBeforeNotification);
 while ($row = mysqli_fetch_assoc($result)) {
     $hash = getHashByUserId($row['id']);
     $subject = getMessageSubject();
     $body = addslashes(getMessageBody($row['username'], $row['id'], $hash));
 
     if (!addTaskToQueue($mysqli, EMAIL_FROM, $row['email'], $hash, $subject, $body)) {
-        addLog("Сообщение ошибки: %s\n" . mysqli_error($mysqli));
+        addLog("Сообщение ошибки: \n" . mysqli_error($mysqli));
     }
 }
 
-function getUsersForSending($mysqli, $to, $from)
+function getUsersForSending($mysqli, $daysBeforeNotification = 3)
 {
-    $sql = "select * from `users` where (`confirmed` = 1 or (`checked` = 1 and `valid` = 1)) and `subscribed` = 1 and `validts` between {$from} and {$to} order by `validts` asc";
+    $sql = "select * from `users` 
+            where (`confirmed` = 1 or (`checked` = 1 and `valid` = 1)) 
+              and `subscribed` = 1 
+              and `valid_till` = curdate() + interval {$daysBeforeNotification} day
+              and `valid_till` > ifnull(`notification_sent`, '1970-01-01')
+            order by `valid_till` asc";
     return mysqli_query($mysqli, $sql);
 }
 
 function addTaskToQueue($mysqli, string $emailFrom, string $emailTo, string $hash, string $subject, string $body)
 {
-    $sql = "insert into `queue_emails` (`from`, `to`, `hash`, `subject`, `body`) values ('{$emailFrom}', '{$emailTo}', '{$hash}', '{$subject}', '{$body}')";
+    $sql = "insert into `queue_emails` (`from`, `to`, `hash`, `subject`, `body`) 
+            values ('{$emailFrom}', '{$emailTo}', '{$hash}', '{$subject}', '{$body}')";
     return mysqli_query($mysqli, $sql);
 }
 

@@ -7,11 +7,15 @@
 
 require '_config.php';
 
+$daysBeforeNotification = 30;
 
 // grab user's with NOT confirmed and NOT checked emails withing the range of today and 30 days in future
-$from = time();
-$to = $from + 60 * 60 * 24 * 30;
-$sql = "select * from `users` where `confirmed` = 0 and `checked` = 0 and `subscribed` = 1 and `validts` between {$from} and {$to} order by `validts` asc";
+$sql = "select * from `users` 
+        where `confirmed` = 0 
+           and `checked` = 0 
+           and `subscribed` = 1 
+           and `valid_till` between curdate() and curdate() + interval {$daysBeforeNotification} day 
+        order by `valid_till` asc";
 $result = mysqli_query($mysqli, $sql);
 
 while ($row = mysqli_fetch_assoc($result)) {
@@ -23,7 +27,7 @@ while ($row = mysqli_fetch_assoc($result)) {
     }
 
     if (!mysqli_query($mysqli, $sql)) {
-        addLog("Сообщение ошибки: %s\n" . mysqli_error($mysqli));
+        addLog("Сообщение ошибки: \n" . mysqli_error($mysqli));
     }
 }
 

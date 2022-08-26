@@ -1,13 +1,14 @@
 create table users
 (
-    `id`         int auto_increment,
-    `username`   varchar(256) null,
-    `email`      varchar(256) not null,
-    `validts`    int          null,
-    `confirmed`  boolean      null,
-    `checked`    boolean      null,
-    `valid`      boolean      null,
-    `subscribed` boolean      null,
+    `id`                int auto_increment,
+    `username`          varchar(256) null,
+    `email`             varchar(256) not null,
+    `valid_till`        date         null,
+    `confirmed`         boolean      null,
+    `checked`           boolean      null,
+    `valid`             boolean      null,
+    `subscribed`        boolean      null,
+    `notification_sent` date         null,
     constraint users_pk
         primary key (id)
 );

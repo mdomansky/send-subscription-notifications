@@ -1,5 +1,5 @@
 <?php
 
 function addLog($message) {
-    echo $message;
+    error_log($message);
 }

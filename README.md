@@ -1,4 +1,4 @@
-# Task:
+# Task
 Create a service that sends notifications before user's subscription is expired. We have a list of users with emails. Some of them confirmed their emails and we know that their emails are valid. The rest emails were not confirmed so we need to check the email validity before sending. We should not send emails that would not be delivered.
 * There are 1.000.000 users
 * Sending method takes from 1 to 10 seconds.
