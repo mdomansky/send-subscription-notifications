@@ -16,9 +16,13 @@ $result = getUsersForSending($mysqli, $daysBeforeNotification);
 while ($row = mysqli_fetch_assoc($result)) {
     $hash = getHashByUserId($row['id']);
     $subject = getMessageSubject();
-    $body = addslashes(getMessageBody($row['username'], $row['id'], $hash));
+    $body = getMessageBody($row['username'], $row['id'], $hash);
 
     if (!addTaskToQueue($mysqli, EMAIL_FROM, $row['email'], $hash, $subject, $body)) {
+        addLog("Сообщение ошибки: \n" . mysqli_error($mysqli));
+    }
+
+    if (!updateNotificationSent($mysqli, $row['id'])) {
         addLog("Сообщение ошибки: \n" . mysqli_error($mysqli));
     }
 }
@@ -36,8 +40,20 @@ function getUsersForSending($mysqli, $daysBeforeNotification = 3)
 
 function addTaskToQueue($mysqli, string $emailFrom, string $emailTo, string $hash, string $subject, string $body)
 {
+    $emailFrom = addslashes($emailFrom);
+    $emailTo = addslashes($emailTo);
+    $hash = addslashes($hash);
+    $subject = addslashes($subject);
+    $body = addslashes($body);
     $sql = "insert into `queue_emails` (`from`, `to`, `hash`, `subject`, `body`) 
             values ('{$emailFrom}', '{$emailTo}', '{$hash}', '{$subject}', '{$body}')";
+    return mysqli_query($mysqli, $sql);
+}
+
+function updateNotificationSent($mysqli, int $userId)
+{
+    $sql = "update `users` set `notification_sent` = `valid_till`
+            where `id` = {$userId}";
     return mysqli_query($mysqli, $sql);
 }
 
